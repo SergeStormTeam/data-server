@@ -1,0 +1,15 @@
+services:
+  redis:
+    image: redis:7
+    container_name: redis-serge-networking
+    ports:
+      - "6379:6379"
+  nullscaple:
+    build: 
+      context: .
+      dockerfile: Containerfile
+    container_name: Nullscaple
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
