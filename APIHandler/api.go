@@ -1,53 +1,93 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/WeatherGod3218/nullscaple/redis"
-
-	"github.com/WeatherGod3218/nullscaple/enemies"
-	"github.com/gin-gonic/gin"
-
-	"github.com/WeatherGod3218/nullscaple/logging"
+	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+
+	"github.com/gin-gonic/gin"
 )
 
-func RedisRateLimiter(rate float64, capacity float64) gin.HandlerFunc {
+type ProbeData struct {
+	Timestamp     float64  `json:"timestamp"`
+	CO2           *float64 `json:"co2"`
+	Humidity      *float64 `json:"humidity"`
+	Precipitation *float64 `json:"precipitation"`
+	Pressure      *float64 `json:"pressure"`
+	VOC           *float64 `json:"voc"`
+	WindSpeed     *float64 `json:"wind_speed"`
+}
 
-	limiter := redis.NewTokenBucket(rate, capacity)
+type DatabaseEntry struct {
+	Timestamp     float64  `json:"timestamp"`
+	SessionId     string   `json:"session_id"`
+	Sequence      int      `json:"sequence"`
+	CO2           *float64 `json:"co2"`
+	Humidity      *float64 `json:"humidity"`
+	Precipitation *float64 `json:"precipitation"`
+	Pressure      *float64 `json:"pressure"`
+	VOC           *float64 `json:"voc"`
+	WindSpeed     *float64 `json:"wind_speed"`
+}
 
-	return func(c *gin.Context) {
-		ip := c.ClientIP()
+type DatabaseResponse struct {
+	SessionId string `json:"session_id"`
+	Sequence  int    `json:"sequence"`
+}
 
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "RedisRateLimiter"}).Info(fmt.Sprintf("Recieved from IP:%s", ip))
+type DatabaseBackup struct {
+	Data []DatabaseEntry `json:"data"`
+}
 
-		allowed, tokens, err := limiter.Allow(c, ip)
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func UpdateLiveData(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	for {
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
-			logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "RedisRateLimiter"}).Warn(fmt.Sprintf("Failure in the redis cache %v", err))
-		} else if !allowed {
-			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": "Too many requests!",
-			})
-			c.Abort()
+			break
+		}
+
+		if messageType != 1 {
 			return
 		}
 
-		c.Header("X-RateLimit-Limit", fmt.Sprintf("%.0f", capacity))
-		c.Header("X-RateLimit-Remaining", fmt.Sprintf("%v", tokens))
+		var data ProbeData
 
-		c.Next()
+		err = json.Unmarshal(message, &data)
+		if err != nil {
+			logging.Logger.WithFields(logrus.Fields{"error": err, "module": "api", "method": "UpdateLiveData"}).Warn("Unable to unmarshel data from websocket!")
+			break
+		}
+
+		// logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "UpdateLiveData"}).Info(fmt.Sprintf("Succesfully recieved new data! , Timestamp: %f, CO2: %v, Humidity: %v, Precipitation: %v Pressure: %v VOC: %v WindSpeed: %v",
+		// 	data.Timestamp,
+		// 	data.CO2,
+		// 	data.Humidity,
+		// 	data.Precipitation,
+		// 	data.Pressure,
+		// 	data.VOC,
+		// 	data.WindSpeed,
+		// ))
 	}
 }
 
-func GetEnemies(c *gin.Context) {
-	loadedEnemies := enemies.GetEnemyList()
-	c.JSON(http.StatusOK, loadedEnemies)
-}
+func UpdateDatabase(c *gin.Context) {
 
-func GuessEnemy(c *gin.Context) {
-	var req enemies.EnemyRequest
+	var req DatabaseBackup
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -55,86 +95,14 @@ func GuessEnemy(c *gin.Context) {
 		return
 	}
 
-	if !enemies.CheckIfStringIsMode(req.Mode) {
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "Guessenemy"}).Warn(fmt.Sprintf("Failed to find the gamemode marked with the %s", req.Mode))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unable to process the request!",
-		})
-		return
-	}
+	var rows []DatabaseResponse
 
-	enemyIndex, err := strconv.Atoi(req.ID)
-	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "Guessenemy"}).Warn(fmt.Sprintf("Failed to convert the id %s", req.ID))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unable to process the request!",
-		})
-		return
-	}
-
-	foundEnemy := enemies.GetEnemyFromId(enemyIndex)
-	if foundEnemy == nil {
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "Guessenemy"}).Warn(fmt.Sprintf("Failed to find enemy with the id %d", enemyIndex))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unable to process the request!",
-		})
-		return
-	}
-
-	baseEnemy := enemies.GetEnemyOfTheDay(req.Mode)
-	guessResult := enemies.CompareEnemies(foundEnemy, baseEnemy)
-
+	rows = make([]DatabaseResponse, 3)
 	c.JSON(http.StatusOK, gin.H{
-		"result": guessResult,
-		"enemy":  foundEnemy,
+		"updated": rows,
 	})
 }
 
-func GetTodaysEnemy(c *gin.Context) {
-	var req enemies.EnemyRequest
-
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	if !enemies.CheckIfStringIsMode(req.Mode) {
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "Guessenemy"}).Warn(fmt.Sprintf("Failed to find the gamemode marked with the %s", req.Mode))
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unable to process the request!",
-		})
-		return
-	}
-
-	baseEnemy := enemies.GetEnemyOfTheDay(req.Mode)
-	c.JSON(http.StatusOK, gin.H{
-		"enemy": baseEnemy,
-	})
-}
-
-func GetHomePage(c *gin.Context) {
-
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{})
-}
-
-func GetGuessScreenPage(c *gin.Context) {
-	mode := c.Param("mode")
-
-	if !enemies.CheckIfStringIsMode(mode) {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Unable to process the request!",
-		})
-		return
-	}
-
-	enemyList := enemies.GetEnemyList()
-
-	c.HTML(http.StatusOK, "guessing.tmpl", gin.H{
-		"Enemies": enemyList,
-		"Mode":    mode,
-	})
-}
 func HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"health": "Okay",

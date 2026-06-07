@@ -4,12 +4,14 @@ services:
     container_name: redis-serge-networking
     ports:
       - "6379:6379"
-  nullscaple:
-    build: 
-      context: .
-      dockerfile: Containerfile
-    container_name: Nullscaple
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
+    networks:
+      - serge-external-network
+  serge-api-handler:
+    extends: 
+      file: ./APIHandler/docker-compose.yaml
+      service: serge-api-handler
+
+
+networks:
+  serge-external-network:
+    external: true
