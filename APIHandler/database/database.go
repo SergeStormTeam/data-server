@@ -30,11 +30,12 @@ func InitDB() error {
 
 	_, err = newDB.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS data (
+			id UUID PRIMARY KEY,			
+			timestamp TIMESTAMPTZ NOT NULL,
 			session_id UUID NOT NULL,
-			timestamp TIMESTAMPZ NOT NULL,
+
 			sequence INTEGER NOT NULL,		
 
-            timestamp TIMESTAMPTZ NOT NULL,
             temperature DOUBLE PRECISION,
 			humidity DOUBLE PRECISION,
 			pressure DOUBLE PRECISION,
@@ -43,9 +44,26 @@ func InitDB() error {
 			co2 DOUBLE PRECISION,
 			precipitation DOUBLE PRECISION,
 
-			PRIMARY KEY (session_id, sequence)
+			UNIQUE(session_id, sequence)
         );
     `)
+	if err != nil {
+		return err
+	}
+
+	_, err = newDB.Exec(context.Background(), `
+        CREATE TABLE IF NOT EXISTS events (
+			id UUID PRIMARY KEY,			
+			timestamp TIMESTAMPTZ NOT NULL,
+			session_id UUID NOT NULL,			
+
+ 			message TEXT NOT NULL,
+            severity INTEGER NOT NULL
+        );
+    `)
+	if err != nil {
+		return err
+	}
 
 	db = newDB
 

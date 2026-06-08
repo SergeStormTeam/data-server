@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/WeatherGod3218/serge-api-handler/database"
 	"github.com/WeatherGod3218/serge-api-handler/logging"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -19,27 +20,6 @@ type ProbeData struct {
 	Pressure      *float64 `json:"pressure"`
 	VOC           *float64 `json:"voc"`
 	WindSpeed     *float64 `json:"wind_speed"`
-}
-
-type DatabaseEntry struct {
-	Timestamp     float64  `json:"timestamp"`
-	SessionId     string   `json:"session_id"`
-	Sequence      int      `json:"sequence"`
-	CO2           *float64 `json:"co2"`
-	Humidity      *float64 `json:"humidity"`
-	Precipitation *float64 `json:"precipitation"`
-	Pressure      *float64 `json:"pressure"`
-	VOC           *float64 `json:"voc"`
-	WindSpeed     *float64 `json:"wind_speed"`
-}
-
-type DatabaseResponse struct {
-	SessionId string `json:"session_id"`
-	Sequence  int    `json:"sequence"`
-}
-
-type DatabaseBackup struct {
-	Data []DatabaseEntry `json:"data"`
 }
 
 var upgrader = websocket.Upgrader{
@@ -87,19 +67,29 @@ func UpdateLiveData(c *gin.Context) {
 
 func UpdateDatabase(c *gin.Context) {
 
-	var req DatabaseBackup
+	var req database.DatabaseBackup
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var rows []DatabaseResponse
+	data_rows, err := database.AddDataToDatabase(req.Data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	rows = make([]DatabaseResponse, 3)
+	event_rows, err := database.AddEventsToDatabase(req.Events)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"updated": rows,
+		"data":   data_rows,
+		"events": event_rows,
 	})
 }
 

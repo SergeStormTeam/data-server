@@ -19,7 +19,7 @@ func main() {
 
 	err = database.InitDB()
 	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitRedis"}).Fatal("Failed to init database!")
+		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitDB"}).Fatal("Failed to init database!")
 	}
 
 	router := gin.Default()

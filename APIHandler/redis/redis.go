@@ -50,10 +50,8 @@ func RedisRateLimiter(rate float64, capacity float64) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
-
-		logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "RedisRateLimiter"}).Info(fmt.Sprintf("Recieved from IP:%s", ip))
-
 		allowed, tokens, err := limiter.Allow(c, ip)
+
 		if err != nil {
 			logging.Logger.WithFields(logrus.Fields{"module": "api", "method": "RedisRateLimiter"}).Warn(fmt.Sprintf("Failure in the redis cache %v", err))
 		} else if !allowed {
