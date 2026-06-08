@@ -1,36 +1,39 @@
 package main
 
 import (
-	"net/http"
+	"os"
 
-	"github.com/WeatherGod3218/nullscaple/enemies"
-	"github.com/WeatherGod3218/nullscaple/redis"
-
-	"github.com/WeatherGod3218/nullscaple/logging"
+	"github.com/WeatherGod3218/serge-api-handler/authorization"
+	"github.com/WeatherGod3218/serge-api-handler/database"
+	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/WeatherGod3218/serge-api-handler/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-
-	enemies.InitEnemies()
 	err := redis.InitRedis()
 	if err != nil {
 		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitRedis"}).Fatal("Failed to init redis!")
 	}
+
+	err = database.InitDB()
+	if err != nil {
+		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitDB"}).Fatal("Failed to init database!")
+	}
+
 	router := gin.Default()
 
-	router.GET("/health", HealthCheck)
+	group := router.Group("/")
 
-	router.StaticFS("/static", http.Dir("static"))
-	router.LoadHTMLGlob("templates/*")
+	group.Use(redis.RedisRateLimiter(2, 50))
+	group.Use(authorization.CheckAuthorization(os.Getenv("SERVER_API_KEY")))
 
-	router.GET("/", RedisRateLimiter(2, 50), GetHomePage)
+	group.GET("/health", HealthCheck)
+	group.POST("/backup-data", UpdateDatabase)
 
-	router.GET("/guess-screen/:mode", RedisRateLimiter(2, 50), GetGuessScreenPage)
-	router.GET("/get-enemies", RedisRateLimiter(2, 50), GetEnemies)
-	router.POST("/guess-enemy", RedisRateLimiter(2, 50), GuessEnemy)
-	router.GET("/get-enemy-today", RedisRateLimiter(2, 50), GetTodaysEnemy)
+	// Websocket!
+	group.GET("/refresh-live", UpdateLiveData)
 
 	router.Run(":8080")
 }
