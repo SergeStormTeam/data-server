@@ -14,6 +14,7 @@ import (
 
 type ProbeData struct {
 	Timestamp     float64  `json:"timestamp"`
+	Temperature   *float64 `json:"temperature"`
 	CO2           *float64 `json:"co2"`
 	Humidity      *float64 `json:"humidity"`
 	Precipitation *float64 `json:"precipitation"`
