@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/SergeStormTeam/api-handler/logging"
 
 	"github.com/jackc/pgx/v5"
 

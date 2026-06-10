@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/WeatherGod3218/serge-api-handler/database"
-	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/SergeStormTeam/api-handler/database"
+	"github.com/SergeStormTeam/api-handler/logging"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 
