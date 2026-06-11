@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/WeatherGod3218/serge-api-handler/database"
-	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/SergeStormTeam/api-handler/database"
+	"github.com/SergeStormTeam/api-handler/logging"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 
@@ -14,6 +14,7 @@ import (
 
 type ProbeData struct {
 	Timestamp     float64  `json:"timestamp"`
+	Temperature   *float64 `json:"temperature"`
 	CO2           *float64 `json:"co2"`
 	Humidity      *float64 `json:"humidity"`
 	Precipitation *float64 `json:"precipitation"`

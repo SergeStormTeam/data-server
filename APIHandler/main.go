@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/WeatherGod3218/serge-api-handler/authorization"
-	"github.com/WeatherGod3218/serge-api-handler/database"
-	"github.com/WeatherGod3218/serge-api-handler/logging"
-	"github.com/WeatherGod3218/serge-api-handler/redis"
+	"github.com/SergeStormTeam/api-handler/authorization"
+	"github.com/SergeStormTeam/api-handler/database"
+	"github.com/SergeStormTeam/api-handler/logging"
+	"github.com/SergeStormTeam/api-handler/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/WeatherGod3218/serge-api-handler/logging"
+	"github.com/SergeStormTeam/api-handler/logging"
 
 	"github.com/jackc/pgx/v5"
 
@@ -16,6 +16,7 @@ type DBDataEntry struct {
 	Timestamp     float64  `json:"timestamp"`
 	SessionId     string   `json:"session_id"`
 	Sequence      int      `json:"sequence"`
+	Temperature   *float64 `json:"temperature"`
 	CO2           *float64 `json:"co2"`
 	Humidity      *float64 `json:"humidity"`
 	Precipitation *float64 `json:"precipitation"`
@@ -122,6 +123,7 @@ func AddDataToDatabase(new_rows []DBDataEntry) ([]DatabaseResponse, error) {
 			time.Unix(int64(entry.Timestamp), 0).UTC(),
 			entry.SessionId,
 			entry.Sequence,
+			entry.Temperature,
 			entry.CO2,
 			entry.Humidity,
 			entry.Precipitation,
@@ -149,7 +151,7 @@ func AddDataToDatabase(new_rows []DBDataEntry) ([]DatabaseResponse, error) {
 	_, err = transaction.CopyFrom(
 		ctx,
 		pgx.Identifier{"data_staging"},
-		[]string{"id", "timestamp", "session_id", "sequence", "co2", "humidity", "precipitation", "pressure", "voc", "wind_speed"},
+		[]string{"id", "timestamp", "session_id", "sequence", "temperature", "co2", "humidity", "precipitation", "pressure", "voc", "wind_speed"},
 		pgx.CopyFromRows(rows),
 	)
 

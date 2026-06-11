@@ -1,4 +1,4 @@
-module github.com/WeatherGod3218/serge-api-handler
+module github.com/SergeStormTeam/api-handler
 
 go 1.26.2
 
