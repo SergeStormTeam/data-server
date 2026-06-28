@@ -34,5 +34,5 @@ func main() {
 	group.POST("/backup-data", UpdateDatabase)
 	group.POST("/update-probe-data", LiveData)
 
-	router.Run(":8080")
+	router.Run(":47009")
 }

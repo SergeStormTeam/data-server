@@ -12,17 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ProbeData struct {
-	Timestamp     float64  `json:"timestamp"`
-	Temperature   *float64 `json:"temperature"`
-	CO2           *float64 `json:"co2"`
-	Humidity      *float64 `json:"humidity"`
-	Precipitation *float64 `json:"precipitation"`
-	Pressure      *float64 `json:"pressure"`
-	VOC           *float64 `json:"voc"`
-	WindSpeed     *float64 `json:"wind_speed"`
-}
-
 func LiveData(c *gin.Context) {
 	var payload types.ZephyrUpdate
 	err := c.ShouldBindJSON(&payload)

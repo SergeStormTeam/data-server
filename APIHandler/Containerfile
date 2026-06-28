@@ -4,10 +4,13 @@ WORKDIR /src/
 RUN apk add git
 COPY go.* .
 RUN go mod download
+
 COPY database database
 COPY logging logging
 COPY redis redis
+COPY types types
 COPY authorization authorization
+
 COPY *.go .
 RUN go build -v -o serge-api-handler
 

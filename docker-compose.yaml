@@ -8,10 +8,19 @@ services:
       - serge-external-network
       
   serge-api-handler:
+    container_name: serge-api-handler
+    networks:
+      - serge-external-network
     extends: 
       file: ./APIHandler/docker-compose.yaml
       service: serge-api-handler
-
+  serge-dashboard-handler:
+    container_name: serge-dashboard-handler
+    networks:
+      - serge-external-network
+    extends: 
+      file: ./DashboardHandler/docker-compose.yaml
+      service: serge-dashboard-handler
 
 networks:
   serge-external-network:

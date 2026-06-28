@@ -12,7 +12,7 @@ services:
       dockerfile: Containerfile
     container_name: serge-api-handler
     ports:
-      - "8080:8080"
+      - "47009:47009"
     env_file:
       - .env
     networks:
