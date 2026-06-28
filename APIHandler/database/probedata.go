@@ -17,12 +17,13 @@ type DBDataEntry struct {
 	SessionId     string   `json:"session_id"`
 	Sequence      int      `json:"sequence"`
 	Temperature   *float64 `json:"temperature"`
-	CO2           *float64 `json:"co2"`
 	Humidity      *float64 `json:"humidity"`
-	Precipitation *float64 `json:"precipitation"`
 	Pressure      *float64 `json:"pressure"`
-	VOC           *float64 `json:"voc"`
+	ECO2          *float64 `json:"eco2"`
+	TVOC          *float64 `json:"tvoc"`
+	Precipitation *float64 `json:"precipitation"`
 	WindSpeed     *float64 `json:"wind_speed"`
+	WindDirection *float64 `json:"wind_direction"`
 }
 
 type DBEventEntry struct {
@@ -123,13 +124,16 @@ func AddDataToDatabase(new_rows []DBDataEntry) ([]DatabaseResponse, error) {
 			time.Unix(int64(entry.Timestamp), 0).UTC(),
 			entry.SessionId,
 			entry.Sequence,
+
 			entry.Temperature,
-			entry.CO2,
 			entry.Humidity,
-			entry.Precipitation,
 			entry.Pressure,
-			entry.VOC,
+			entry.TVOC,
+			entry.ECO2,
+
+			entry.Precipitation,
 			entry.WindSpeed,
+			entry.WindDirection,
 		}
 
 		returned_rows[i] = DatabaseResponse{
@@ -151,7 +155,7 @@ func AddDataToDatabase(new_rows []DBDataEntry) ([]DatabaseResponse, error) {
 	_, err = transaction.CopyFrom(
 		ctx,
 		pgx.Identifier{"data_staging"},
-		[]string{"id", "timestamp", "session_id", "sequence", "temperature", "co2", "humidity", "precipitation", "pressure", "voc", "wind_speed"},
+		[]string{"id", "timestamp", "session_id", "sequence", "temperature", "humidity", "pressure", "tvoc", "eco2", "precipitation", "wind_speed", "wind_direction"},
 		pgx.CopyFromRows(rows),
 	)
 

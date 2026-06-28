@@ -39,9 +39,12 @@ func InitDB() error {
             temperature DOUBLE PRECISION,
 			humidity DOUBLE PRECISION,
 			pressure DOUBLE PRECISION,
-			voc DOUBLE PRECISION,
+			
+			eco2 DOUBLE PRECISION,
+			tvoc DOUBLE PRECISION,
+			
 			wind_speed DOUBLE PRECISION,
-			co2 DOUBLE PRECISION,
+			wind_direction DOUBLE PRECISION,
 			precipitation DOUBLE PRECISION,
 
 			UNIQUE(session_id, sequence)
