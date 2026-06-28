@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/SergeStormTeam/api-handler/logging"
+	"github.com/SergeStormTeam/dashboard-handler/logging"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )

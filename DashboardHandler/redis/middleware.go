@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/SergeStormTeam/api-handler/logging"
+	"github.com/SergeStormTeam/dashboard-handler/logging"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ import (
 
 const MILLISECONDS = 1000
 
-var RatelimitKey = ":ratelimit"
+var RatelimitKey = os.Getenv("TRAIL_NAME") + ":ratelimit"
 
 var middlewareScript = redis.NewScript(`
 	local key = KEYS[1]

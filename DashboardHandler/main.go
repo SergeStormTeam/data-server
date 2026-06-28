@@ -3,10 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/SergeStormTeam/api-handler/authorization"
-	"github.com/SergeStormTeam/api-handler/database"
-	"github.com/SergeStormTeam/api-handler/logging"
-	"github.com/SergeStormTeam/api-handler/redis"
+	"github.com/SergeStormTeam/dashboard-handler/authorization"
+	"github.com/SergeStormTeam/dashboard-handler/logging"
+	"github.com/SergeStormTeam/dashboard-handler/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -15,11 +14,6 @@ func main() {
 	err := redis.InitRedis()
 	if err != nil {
 		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitRedis"}).Fatal("Failed to init redis!")
-	}
-
-	err = database.InitDB()
-	if err != nil {
-		logging.Logger.WithFields(logrus.Fields{"error": err, "module": "main", "method": "InitDB"}).Fatal("Failed to init database!")
 	}
 
 	router := gin.Default()
@@ -31,8 +25,8 @@ func main() {
 
 	group.GET("/health", HealthCheck)
 
-	group.POST("/backup-data", UpdateDatabase)
-	group.POST("/update-probe-data", LiveData)
+	// Websocket!
+	group.GET("/refresh-live", ViewLiveData)
 
-	router.Run(":8080")
+	router.Run(":8000")
 }
