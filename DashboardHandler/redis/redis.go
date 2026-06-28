@@ -15,6 +15,8 @@ var client *redis.Client
 var chanClient *redis.Client
 
 func InitRedis() error {
+	logging.Logger.Infof("REDIS_URL=%q", os.Getenv("REDIS_URL"))
+
 	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
 		return err

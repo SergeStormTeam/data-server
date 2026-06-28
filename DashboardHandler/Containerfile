@@ -4,18 +4,20 @@ WORKDIR /src/
 RUN apk add git
 COPY go.* .
 RUN go mod download
-COPY database database
+
 COPY logging logging
 COPY redis redis
-COPY authorization authorization
+COPY types types
+COPY dashboard dashboard
+
 COPY *.go .
-RUN go build -v -o serge-api-handler
+RUN go build -v -o serge-dashboard-handler
 
 FROM docker.io/alpine
 RUN apk add --no-cache tzdata
 ENV TZ=America/Chicago
 RUN cp /usr/share/zoneinfo/America/Chicago /etc/localtime
 
-COPY --from=build /src/serge-api-handler /serge-api-handler
+COPY --from=build /src/serge-dashboard-handler /serge-dashboard-handler
 
-ENTRYPOINT [ "/serge-api-handler" ]
+ENTRYPOINT [ "/serge-dashboard-handler" ]

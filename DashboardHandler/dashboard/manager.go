@@ -27,6 +27,7 @@ func AddWebSocketConnection(conn *websocket.Conn) {
 	}
 
 	Hub.Mu.Lock()
+	logging.Logger.WithFields(logrus.Fields{"module": "dashboard", "method": "AddWebSocketConnection"}).Info("NEW CONNECTION!")
 	Hub.Clients[conn] = newClient
 	Hub.Mu.Unlock()
 
@@ -49,6 +50,8 @@ func RemoveWebSocketConnection(conn *websocket.Conn) {
 func MessageAllWebsockets(payload any) {
 	Hub.Mu.RLock()
 	defer Hub.Mu.RUnlock()
+
+	logging.Logger.WithFields(logrus.Fields{"payload": payload, "module": "dashboard", "method": "AddWebSocketConnection"}).Info("New Payload")
 
 	for conn, client := range Hub.Clients {
 		select {

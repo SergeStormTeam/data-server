@@ -12,7 +12,7 @@ services:
       dockerfile: Containerfile
     container_name: serge-dashboard-handler
     ports:
-      - "8000:8000"
+      - "5632:5632"
     env_file:
       - .env
     networks:
